@@ -1,0 +1,7 @@
+plugin: vultr
+keyed_groups:
+  - prefix: vultr_tag
+    key: tag | lower
+  - separator: ""
+    key: os
+    aa

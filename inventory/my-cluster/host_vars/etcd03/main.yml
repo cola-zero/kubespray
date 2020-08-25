@@ -1,0 +1,4 @@
+access_ip: 10.1.0.13
+ip: 10.1.0.13
+etcd_cert_alt_ips:
+  - 10.1.0.13
