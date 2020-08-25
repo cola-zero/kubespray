@@ -25,6 +25,9 @@ spec:
         - --kvstore=etcd
         - --kvstore-opt=etcd.config=/var/lib/etcd-config/etcd.config
         - --config-dir=/tmp/cilium/config-map
+{% if cilium_mtu != "" %}
+        - --mtu={{ cilium_mtu }}
+{% endif %}
         command:
         - cilium-agent
         env:
@@ -40,6 +43,12 @@ spec:
               fieldPath: metadata.namespace
         - name: CILIUM_CLUSTERMESH_CONFIG
           value: /var/lib/cilium/clustermesh/
+{% if cilium_kube_proxy_replacement == 'strict' %}
+        - name: KUBERNETES_SERVICE_HOST
+          value: "{{ kube_apiserver_global_endpoint | urlsplit('hostname') }}"
+        - name: KUBERNETES_SERVICE_PORT
+          value: "{{ kube_apiserver_global_endpoint | urlsplit('port') }}"
+{% endif %}
         image: "{{cilium_image_repo}}:{{cilium_image_tag}}"
         imagePullPolicy: {{ k8s_image_pull_policy }}
         resources:
@@ -59,11 +68,14 @@ spec:
               command:
               - /cni-uninstall.sh
         livenessProbe:
-          exec:
-            command:
-            - cilium
-            - status
-            - --brief
+          httpGet:
+            host: '127.0.0.1'
+            path: /healthz
+            port: 9876
+            scheme: HTTP
+            httpHeaders:
+            - name: "brief"
+              value: "true"
           failureThreshold: 10
           # The initial delay for the liveness probe is intentionally large to
           # avoid an endless kill & restart cycle if in the event that the initial
@@ -73,19 +85,30 @@ spec:
           successThreshold: 1
           timeoutSeconds: 5
         name: cilium-agent
-{% if cilium_enable_prometheus %}
+{% if cilium_enable_prometheus or cilium_enable_hubble_metrics %}
         ports:
+{% endif %}
+{% if cilium_enable_prometheus %}
         - containerPort: 9090
           hostPort: 9090
           name: prometheus
           protocol: TCP
 {% endif %}
+{% if cilium_enable_hubble_metrics %}
+        - containerPort: 9091
+          hostPort: 9091
+          name: hubble-metrics
+          protocol: TCP
+{% endif %}
         readinessProbe:
-          exec:
-            command:
-            - cilium
-            - status
-            - --brief
+          httpGet:
+            host: '127.0.0.1'
+            path: /healthz
+            port: 9876
+            scheme: HTTP
+            httpHeaders:
+            - name: "brief"
+              value: "true"
           failureThreshold: 3
           initialDelaySeconds: 5
           periodSeconds: 30
@@ -131,6 +154,8 @@ spec:
         - mountPath: /lib/modules
           name: lib-modules
           readOnly: true
+        - mountPath: /run/xtables.lock
+          name: xtables-lock
       dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       hostPID: false
@@ -138,7 +163,7 @@ spec:
       - command:
         - /init-container.sh
         env:
-        - name: CLEAN_CILIUM_STATE
+        - name: CILIUM_ALL_STATE
           valueFrom:
             configMapKeyRef:
               key: clean-cilium-state
@@ -214,6 +239,11 @@ spec:
       - hostPath:
           path: /lib/modules
         name: lib-modules
+        # To access iptables concurrently with other processes (e.g. kube-proxy)
+      - hostPath:
+          path: /run/xtables.lock
+          type: FileOrCreate
+        name: xtables-lock
         # To read the etcd config stored in config maps
       - configMap:
           defaultMode: 420
