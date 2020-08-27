@@ -4,4 +4,3 @@ keyed_groups:
     key: tag | lower
   - separator: ""
     key: os
-    aa
