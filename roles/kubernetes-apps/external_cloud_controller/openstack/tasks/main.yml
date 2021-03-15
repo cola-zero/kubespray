@@ -3,11 +3,11 @@
   tags: external-openstack
 
 - name: External OpenStack Cloud Controller | Write cacert file
-  copy:
-    src: "{{ external_openstack_cacert }}"
-    dest: "{{ kube_config_dir }}/external-openstack-cacert.pem"
-    group: "{{ kube_cert_group }}"
-    mode: 0640
+  include_tasks: openstack-write-cacert.yml
+  run_once: true
+  loop: "{{ groups['k8s-cluster'] }}"
+  loop_control:
+    loop_var: delegate_host_to_write_cacert
   when:
     - inventory_hostname in groups['k8s-cluster']
     - external_openstack_cacert is defined
@@ -34,6 +34,8 @@
   template:
     src: "{{ item.file }}.j2"
     dest: "{{ kube_config_dir }}/{{ item.file }}"
+    group: "{{ kube_cert_group }}"
+    mode: 0640
   with_items:
     - {name: external-openstack-cloud-config-secret, file: external-openstack-cloud-config-secret.yml}
     - {name: external-openstack-cloud-controller-manager-roles, file: external-openstack-cloud-controller-manager-roles.yml}

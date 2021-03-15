@@ -223,8 +223,8 @@ def packet_device(resource, tfvars=None):
         'provider': 'packet',
     }
 
-    if raw_attrs['operating_system'] == 'coreos_stable':
-        # For CoreOS set the ssh_user to core
+    if raw_attrs['operating_system'] == 'flatcar_stable':
+        # For Flatcar set the ssh_user to core
         attrs.update({'ansible_ssh_user': 'core'})
 
     # add groups based on attrs
@@ -323,7 +323,7 @@ def openstack_host(resource, module_name):
     })
 
     # add groups based on attrs
-    groups.append('os_image=' + attrs['image']['name'])
+    groups.append('os_image=' + attrs['image']['id'])
     groups.append('os_flavor=' + attrs['flavor']['name'])
     groups.extend('os_metadata_%s=%s' % item
                   for item in list(attrs['metadata'].items()))

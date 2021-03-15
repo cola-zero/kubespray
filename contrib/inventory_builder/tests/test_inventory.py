@@ -51,7 +51,7 @@ class TestInventory(unittest.TestCase):
         groups = ['group1', 'group2']
         self.inv.ensure_required_groups(groups)
         for group in groups:
-            self.assertTrue(group in self.inv.yaml_config['all']['children'])
+            self.assertIn(group, self.inv.yaml_config['all']['children'])
 
     def test_get_host_id(self):
         hostnames = ['node99', 'no99de01', '01node01', 'node1.domain',
@@ -209,8 +209,8 @@ class TestInventory(unittest.TestCase):
             ('doesnotbelong2', {'whateveropts=ilike'})])
         self.inv.yaml_config['all']['hosts'] = existing_hosts
         self.inv.purge_invalid_hosts(proper_hostnames)
-        self.assertTrue(
-            bad_host not in self.inv.yaml_config['all']['hosts'].keys())
+        self.assertNotIn(
+            bad_host, self.inv.yaml_config['all']['hosts'].keys())
 
     def test_add_host_to_group(self):
         group = 'etcd'
@@ -222,13 +222,13 @@ class TestInventory(unittest.TestCase):
             self.inv.yaml_config['all']['children'][group]['hosts'].get(host),
             None)
 
-    def test_set_kube_master(self):
+    def test_set_kube_control_plane(self):
         group = 'kube-master'
         host = 'node1'
 
-        self.inv.set_kube_master([host])
-        self.assertTrue(
-            host in self.inv.yaml_config['all']['children'][group]['hosts'])
+        self.inv.set_kube_control_plane([host])
+        self.assertIn(
+            host, self.inv.yaml_config['all']['children'][group]['hosts'])
 
     def test_set_all(self):
         hosts = OrderedDict([
@@ -246,8 +246,8 @@ class TestInventory(unittest.TestCase):
 
         self.inv.set_k8s_cluster()
         for host in expected_hosts:
-            self.assertTrue(
-                host in
+            self.assertIn(
+                host,
                 self.inv.yaml_config['all']['children'][group]['children'])
 
     def test_set_kube_node(self):
@@ -255,16 +255,16 @@ class TestInventory(unittest.TestCase):
         host = 'node1'
 
         self.inv.set_kube_node([host])
-        self.assertTrue(
-            host in self.inv.yaml_config['all']['children'][group]['hosts'])
+        self.assertIn(
+            host, self.inv.yaml_config['all']['children'][group]['hosts'])
 
     def test_set_etcd(self):
         group = 'etcd'
         host = 'node1'
 
         self.inv.set_etcd([host])
-        self.assertTrue(
-            host in self.inv.yaml_config['all']['children'][group]['hosts'])
+        self.assertIn(
+            host, self.inv.yaml_config['all']['children'][group]['hosts'])
 
     def test_scale_scenario_one(self):
         num_nodes = 50
@@ -275,7 +275,7 @@ class TestInventory(unittest.TestCase):
 
         self.inv.set_all(hosts)
         self.inv.set_etcd(list(hosts.keys())[0:3])
-        self.inv.set_kube_master(list(hosts.keys())[0:2])
+        self.inv.set_kube_control_plane(list(hosts.keys())[0:2])
         self.inv.set_kube_node(hosts.keys())
         for h in range(3):
             self.assertFalse(
@@ -291,7 +291,7 @@ class TestInventory(unittest.TestCase):
 
         self.inv.set_all(hosts)
         self.inv.set_etcd(list(hosts.keys())[0:3])
-        self.inv.set_kube_master(list(hosts.keys())[3:5])
+        self.inv.set_kube_control_plane(list(hosts.keys())[3:5])
         self.inv.set_kube_node(hosts.keys())
         for h in range(5):
             self.assertFalse(

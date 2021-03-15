@@ -12,7 +12,6 @@
   * [Air-Gap Installation](docs/offline-environment.md)
 * CNI
   * [Calico](docs/calico.md)
-  * [Contiv](docs/contiv.md)
   * [Flannel](docs/flannel.md)
   * [Kube Router](docs/kube-router.md)
   * [Weave](docs/weave.md)
@@ -27,13 +26,15 @@
   * [vSphere](/docs/vsphere.md)
 * Operating Systems
   * [Debian](docs/debian.md)
-  * [Coreos](docs/coreos.md)
+  * [Flatcar Container Linux](docs/flatcar.md)
   * [Fedora CoreOS](docs/fcos.md)
   * [OpenSUSE](docs/opensuse.md)
+* CRI
+  * [Containerd](docs/containerd.md)
+  * [CRI-O](docs/cri-o.md)
 * Advanced
   * [Proxy](/docs/proxy.md)
   * [Downloads](docs/downloads.md)
-  * [CRI-O](docs/cri-o.md)
   * [Netcheck](docs/netcheck.md)
   * [DNS Stack](docs/dns-stack.md)
   * [Kubernetes reliability](docs/kubernetes-reliability.md)
